@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
+from django.utils.translation import gettext as _
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -9,9 +10,13 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = get_user_model()
-        fields = ("id", "first_name", "last_name", "email", "password", "username")
+        fields = ("id", "first_name", "last_name", "email", "password")
         extra_kwargs = {
-            "password": {"write_only": True}
+            "password": {
+                "write_only": True,
+                "style": {"input_type": "password"},
+                "label": _("Password"),
+            }
         }
 
     def validate_password(self, value):
