@@ -1,14 +1,10 @@
-import pathlib
 import uuid
 
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.utils.text import slugify
+from django.template.defaultfilters import slugify
 
-
-def profile_image_path(instance: "Profile", filename: str) -> pathlib.Path:
-    filename = f"{slugify(instance.get_user_model().username)}-{uuid.uuid4()}" + pathlib.Path(filename).suffix
-    return pathlib.Path("upload/avatar/") / pathlib.Path(filename)
+from commonutils.util import universal_image_path
 
 
 class Profile(models.Model):
@@ -25,11 +21,24 @@ class Profile(models.Model):
     email = models.EmailField(max_length=255, blank=True)
     location = models.CharField(max_length=255, blank=True)
     gender = models.CharField(max_length=50, choices=GenderChoices)
-    picture = models.ImageField(upload_to=profile_image_path, blank=True, null=True)
+    picture = models.ImageField(upload_to=universal_image_path, blank=True, null=True)
     slug = models.SlugField(unique=True, blank=True)
     friends = models.ManyToManyField(get_user_model(), blank=True, related_name="friends")
     update = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
 
+    def save(self, *args, **kwargs):
+        if self.first_name and self.last_name:
+            to_slug = slugify(f"{self.first_name} {self.last_name}")
+            ex = Profile.objects.filter(slug=to_slug).exists()
+            while ex:
+                to_slug = slugify(f"{self.first_name} {self.last_name} "
+                                  f"{str(uuid.uuid4())[:8].replace('-', '').lower()}")
+                ex = Profile.objects.filter(slug=to_slug).exists()
+        else:
+            to_slug = slugify(str(self.user))
+        self.slug = to_slug
+        super().save(*args, **kwargs)
+
     def __str__(self) -> str:
-        return f"{self.user.username} - {self.created}"
+        return f"{self.user} - {self.created}"

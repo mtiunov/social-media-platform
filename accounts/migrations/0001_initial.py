@@ -45,7 +45,7 @@ class Migration(migrations.Migration):
                     models.ImageField(
                         blank=True,
                         null=True,
-                        upload_to=accounts.models.profile_image_path,
+                        upload_to=accounts.models.universal_image_path,
                     ),
                 ),
                 ("slug", models.SlugField(blank=True, unique=True)),
