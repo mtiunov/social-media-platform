@@ -11,7 +11,7 @@ class Post(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     author = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="posts")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.content[:20])
 
     class Meta:
