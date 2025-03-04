@@ -23,7 +23,6 @@ class Profile(models.Model):
     gender = models.CharField(max_length=50, choices=GenderChoices)
     picture = models.ImageField(upload_to=universal_image_path, blank=True, null=True)
     slug = models.SlugField(unique=True, blank=True)
-    friends = models.ManyToManyField(get_user_model(), blank=True, related_name="friends")
     update = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
 
