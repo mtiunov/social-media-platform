@@ -30,24 +30,24 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
         following = serializer.validate_data.get("following")
 
         if follower == following:
-            raise ValidationError("You cannot subscribe on yourself")
+            raise ValidationError("You cannot subscribe on yourself.")
 
-        if Subscription.objects.filter(follower=follower, following=following).exist():
+        if Subscription.objects.filter(follower=follower, following=following).exists():
             raise ValidationError("You are already subscribed on this user.")
 
         serializer.save(follower=follower)
 
-    def unscribe(self, request, *args, **kwargs):
+    @action(detail=True, methods=["delete"])
+    def unscribe(self, request, pk=None):
 
-        follower = kwargs.get("pk")
-        following = get_object_or_404(User, id=follower)
+        following = get_object_or_404(User, id=pk)
         subscription = Subscription.objects.filter(follower=request.user, following=following).first()
 
         if subscription:
             subscription.delete()
-            return Response({"Unsubscribing successful."}, status.HTTP_204_NO_CONTENT)
+            return Response({"message": "Unsubscribing successful."}, status=status.HTTP_204_NO_CONTENT)
         else:
-            return Response({"You were not subscribed."}, status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "You were not subscribed."}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"])
     def following_list(self, request):
