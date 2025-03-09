@@ -7,10 +7,11 @@ from django.utils.translation import gettext as _
 class UserSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(max_length=70, required=True)
     last_name = serializers.CharField(max_length=70, required=True)
+    username = serializers.CharField(max_length=50, required=True)
 
     class Meta:
         model = get_user_model()
-        fields = ("id", "first_name", "last_name", "email", "password")
+        fields = ("id", "username", "first_name", "last_name", "email", "password")
         extra_kwargs = {
             "password": {
                 "write_only": True,
@@ -18,6 +19,11 @@ class UserSerializer(serializers.ModelSerializer):
                 "label": _("Password"),
             }
         }
+
+    def validate_username(self, value):
+        if get_user_model().objects.filter(username=value).exists():
+            raise serializers.ValidationError(_("This username is already taken."))
+        return value
 
     def validate_password(self, value):
         validate_password(value)
