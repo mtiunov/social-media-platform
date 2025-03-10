@@ -33,7 +33,7 @@ class CustomUserManager(DjangoUserManager):
 
 
 class User(AbstractUser):
-    username = models.CharField(_("username"), max_length=50, blank=False, unique=True, null=False)
+    username = models.CharField(_("username"), max_length=50, unique=True, blank=False)
     email = models.EmailField(_("email address"), unique=True)
 
     USERNAME_FIELD = "email"
