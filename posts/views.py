@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from accounts.models import Profile
 from interactions.models import Subscription
 from posts.models import Post, Hashtag
-from posts.serializers import PostSerializers
+from posts.serializers import PostSerializers, HashtagSerializer
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -13,12 +13,16 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user_profile = Profile.objects.get(user=self.request.user)
-        following_profile = Subscription.objects.filter(follower=self.request.user).value_list("following", flat=True)
+        following_profile = Subscription.objects.filter(follower=self.request.user).values_list("following", flat=True)
         return Post.objects.filter(author__in=[user_profile] + list(following_profile))
 
     def perform_create(self, serializer):
         user_profile = Profile.objects.get(user=self.request.user)
-        serializer.save(author=user_profile)
+        hashtags_data = self.request.data.get("hashtags", [])
+        post = serializer.save(author=user_profile)
+        hashtags = Hashtag.objects.filter(id__in=hashtags_data)
+        post.hashtags.set(hashtags)
+        post.extract_hashtags()
 
     @action(detail=False, methods=["get"])
     def by_hashtag(self, request):
@@ -32,3 +36,8 @@ class PostViewSet(viewsets.ModelViewSet):
         posts = hashtag.posts.all()
         serializer = self.get_serializer(posts, many=True)
         return Response(serializer.data)
+
+
+class HashtagViewSet(viewsets.ModelViewSet):
+    queryset = Hashtag.objects.all()
+    serializer_class = HashtagSerializer
