@@ -5,11 +5,13 @@ from accounts.models import Profile
 from interactions.models import Subscription
 from posts.models import Post, Hashtag
 from posts.serializers import HashtagSerializer, PostListSerializers, PostSerializers, PostRetrieveSerializer
+from posts.filters import PostFilter
 
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostListSerializers
+    filterset_class = PostFilter
 
     def get_serializer_class(self):
         if self.action == "list":
