@@ -2,13 +2,18 @@ from rest_framework import serializers
 from posts.models import Post, Hashtag
 
 
+class HashtagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Hashtag
+        fields = ("id", "name",)
+
+
 class PostSerializers(serializers.ModelSerializer):
-    hashtags = serializers.PrimaryKeyRelatedField(queryset=Hashtag.objects.all(), many=True, required=False)
     author_name = serializers.SerializerMethodField(method_name="get_author_username")
 
     class Meta:
         model = Post
-        fields = ("id", "content", "image", "hashtags", "update", "created", "author_name")
+        fields = ("id", "content", "image", "update", "created", "author_name", "hashtags")
 
     def get_author_username(self, post):
         return post.author.user.username
@@ -24,7 +29,13 @@ class PostSerializers(serializers.ModelSerializer):
         return instance
 
 
-class HashtagSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Hashtag
-        fields = ("id", "name", )
+class PostListSerializers(PostSerializers):
+    hashtags = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field="name"
+    )
+
+
+class PostRetrieveSerializer(PostSerializers):
+    hashtags = HashtagSerializer(many=True)

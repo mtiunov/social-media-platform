@@ -24,6 +24,10 @@ class Post(models.Model):
         tag_objects = [Hashtag.objects.get_or_create(name=tag)[0] for tag in hashtags]
         self.hashtags.set(tag_objects)
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.extract_hashtags()
+
 
 class Hashtag(models.Model):
     name = models.CharField(max_length=255, unique=True)
