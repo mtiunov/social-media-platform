@@ -6,13 +6,42 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from interactions.models import LikeUnlikeDislike, Subscription
 from interactions.serializers import LikeUnlikeDislikeSerializers, SubscriptionSerializers
+from posts.models import Post
 
 User = get_user_model()
 
 
 class LikeUnlikeDislikeViewSet(viewsets.ModelViewSet):
-    queryset = LikeUnlikeDislike.objects.all()
     serializer_class = LikeUnlikeDislikeSerializers
+
+    def get_queryset(self):
+        return LikeUnlikeDislike.objects.filter(user=self.request.user.profile, value="like")
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user.profile)
+
+    def create(self, request, *args, **kwargs):
+        user_profile = request.user.profile
+        post_id = request.data.get("post")
+        value = request.data.get("value")
+
+        if not post_id or not value:
+            return Response({"error": "Post and value are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            post = Post.objects.get(id=post_id)
+        except Post.DoesNotExist:
+            return Response({"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if value not in ["like", "unlike", "dislike"]:
+            return Response({"error": "Invalid value"}, status=status.HTTP_400_BAD_REQUEST)
+
+        like_obj, created = LikeUnlikeDislike.objects.update_or_create(
+            user=user_profile, post=post, defaults={"value": value}
+        )
+
+        message = f"Post {value.lower()}d successfully" if created else f"Post updated to {value.lower()}"
+        return Response({"message": message}, status=status.HTTP_200_OK)
 
 
 class SubscriptionViewSet(viewsets.ModelViewSet):

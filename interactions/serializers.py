@@ -3,9 +3,19 @@ from interactions.models import LikeUnlikeDislike, Subscription
 
 
 class LikeUnlikeDislikeSerializers(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField(method_name="get_user_username")
+    post = serializers.SerializerMethodField(method_name="get_post_content")
+
     class Meta:
         model = LikeUnlikeDislike
-        fields = ("id", "user", "post", "value", "update", "created")
+        fields = ("id", "user", "post", "value")
+        read_only_fields = ("user",)
+
+    def get_user_username(self, likeUnlikeDislike):
+        return likeUnlikeDislike.user.user.username
+
+    def get_post_content(self, likeUnlikeDislike):
+        return likeUnlikeDislike.post.content[:100]
 
 
 class SubscriptionSerializers(serializers.ModelSerializer):
@@ -35,4 +45,3 @@ class SubscriptionSerializers(serializers.ModelSerializer):
 
         subscription = Subscription.objects.created(follower=following, following=following)
         return subscription
-
