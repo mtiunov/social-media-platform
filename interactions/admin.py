@@ -1,3 +1,5 @@
 from django.contrib import admin
+from interactions.models import LikeUnlikeDislike, Subscription
 
-# Register your models here.
+admin.site.register(LikeUnlikeDislike)
+admin.site.register(Subscription)
