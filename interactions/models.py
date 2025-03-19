@@ -1,10 +1,8 @@
-from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.db import models
 from rest_framework.exceptions import ValidationError
 from accounts.models import Profile
 from posts.models import Post
-
-User = get_user_model()
 
 
 class LikeUnlikeDislike(models.Model):
@@ -33,8 +31,8 @@ class LikeUnlikeDislike(models.Model):
 
 
 class Subscription(models.Model):
-    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name="following")
-    following = models.ForeignKey(User, on_delete=models.CASCADE, related_name="followers")
+    follower = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="following")
+    following = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="followers")
     created = models.DateTimeField(auto_now_add=True)
 
     class Meta:

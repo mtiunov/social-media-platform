@@ -1,6 +1,6 @@
 import uuid
 
-from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.db import models
 from django.template.defaultfilters import slugify
 
@@ -15,7 +15,7 @@ class Profile(models.Model):
 
     first_name = models.CharField(max_length=255, blank=True)
     last_name = models.CharField(max_length=255, blank=True)
-    user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     bio = models.TextField(default="fill out a bio", max_length=600)
     birthdate = models.DateField(auto_now=False, null=True, blank=True)
     email = models.EmailField(max_length=255, blank=True)
