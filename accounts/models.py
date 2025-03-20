@@ -16,6 +16,7 @@ class Profile(models.Model):
     first_name = models.CharField(max_length=255, blank=True)
     last_name = models.CharField(max_length=255, blank=True)
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    username = models.CharField(max_length=150, unique=True, blank=True, null=True)
     bio = models.TextField(default="fill out a bio", max_length=600)
     birthdate = models.DateField(auto_now=False, null=True, blank=True)
     email = models.EmailField(max_length=255, blank=True)
