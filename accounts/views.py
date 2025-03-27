@@ -1,7 +1,9 @@
 from django.http import Http404
-from rest_framework import viewsets
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets, exceptions, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from accounts.filters import ProfileFilter
 from accounts.models import Profile
 from accounts.serializers import ProfileSerializers
 
@@ -9,11 +11,21 @@ from accounts.serializers import ProfileSerializers
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializers
+    filter_backends = [DjangoFilterBackend,
+                       filters.SearchFilter,
+                       filters.OrderingFilter
+                       ]
+    filterset_class = ProfileFilter
+    search_fields = ["username", "first_name", "last_name", "email"]
+    ordering_fields = ["username", "email", "location", "gender"]
 
     def get_queryset(self):
-        if self.action == "retrieve":
-            return Profile.objects.filter(slug=self.kwargs.get("pk"))
         return Profile.objects.all()
+
+    def perform_destroy(self, instance):
+        if instance.user != self.request.user:
+            raise exceptions.PermissionDenied("You do not have permission to delete this profile.")
+        instance.delete()
 
     @action(detail=False, methods=["get"])
     def me(self, request):
