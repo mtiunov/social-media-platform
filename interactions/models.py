@@ -26,7 +26,7 @@ class LikeUnlikeDislike(models.Model):
         return f"{self.user}-{self.post}-{self.value}"
 
     def clean(self):
-        if self.value not in [choice[0] for  choice in self.LikeChoices.choices]:
+        if self.value not in [choice[0] for choice in self.LikeChoices.choices]:
             raise ValidationError("Invalid value for like/unlike/dislike")
 
 

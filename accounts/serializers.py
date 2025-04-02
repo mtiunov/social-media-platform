@@ -36,6 +36,6 @@ class ProfileSerializers(serializers.ModelSerializer):
     def get_age(self, obj):
         if obj.birthdate:
             today = date.today()
-            return today.year - obj.birthdate.year - (
-                        (today.month, today.day) < (obj.birthdate.month, obj.birthdate.day))
+            return today.year - obj.birthdate.year - \
+                ((today.month, today.day) < (obj.birthdate.month, obj.birthdate.day))
         return None
