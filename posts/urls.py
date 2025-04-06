@@ -8,6 +8,7 @@ app_name = "posts"
 router = routers.DefaultRouter()
 router.register("posts", PostViewSet, basename="post")
 router.register("hashtags", HashtagViewSet, basename="hashtag")
+router.register("schedules", PostViewSet, basename="schedule")
 
 posts_router = nested_routers.NestedSimpleRouter(router, "posts", lookup="post")
 posts_router.register("comments", CommentViewSet, basename="post-comments")

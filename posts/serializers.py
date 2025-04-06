@@ -13,7 +13,24 @@ class PostSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ("id", "content", "image", "update", "created", "author_name", "hashtags")
+        fields = (
+            "id",
+            "content",
+            "image",
+            "update",
+            "created",
+            "author_name",
+            "hashtags",
+            "publish_at",
+            "is_published"
+        )
+        read_only_fields = (
+            "id",
+            "update",
+            "created",
+            "author_name",
+            "is_published"
+        )
 
     def get_author_username(self, post):
         return post.author.user.username

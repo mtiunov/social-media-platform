@@ -12,6 +12,8 @@ class Post(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     hashtags = models.ManyToManyField("Hashtag", blank=True, related_name="posts")
     author = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="posts")
+    publish_at = models.DateTimeField(null=True, blank=True)
+    is_published = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return str(self.content[:20])
