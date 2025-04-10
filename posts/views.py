@@ -28,11 +28,12 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user_profile = Profile.objects.select_related("user").get(user=self.request.user)
-        following_profiles = Subscription.objects.filter(follower=self.request.user).values_list("following", flat=True)
+        following_profiles = Subscription.objects.filter(follower=self.request.user
+                                                         ).values_list("following", flat=True)
 
         if self.action in ("list", "retrieve"):
-            return Post.objects.filter(author__in=[user_profile] + list(following_profiles)). \
-                prefetch_related("hashtags")
+            return Post.objects.filter(author__in=[user_profile] + list(following_profiles)
+                                       ).prefetch_related("hashtags")
 
     def perform_create(self, serializer):
         user_profile = Profile.objects.get(user=self.request.user)
@@ -85,18 +86,18 @@ class PostViewSet(viewsets.ModelViewSet):
             image=image
         )
 
-        # Створюємо ClockedSchedule для одноразового запуску
+        # Create a ClockedSchedule for a one-time launch
         clocked_schedule, created = ClockedSchedule.objects.get_or_create(
             clocked_time=publish_at
         )
 
-        # Створюємо PeriodicTask для запуску нашого завдання Celery у запланований час
+        # Create a PeriodicTask to run our Celery task at a scheduled time
         PeriodicTask.objects.create(
             name=f"publish_post_{post.id}",
             task="posts.tasks.planning_created_posts",
             clocked=clocked_schedule,
             one_off=True,
-            kwargs=json.dumps({})  # Завдання тепер не потребує ID окремого поста
+            kwargs=json.dumps({})
         )
 
         return Response({"message": f"Post scheduled for {publish_at}."}, status=status.HTTP_201_CREATED)
