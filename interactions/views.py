@@ -56,7 +56,7 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
 
         follower = self.request.user
-        following = serializer.validate_data.get("following")
+        following = serializer.validated_data.get("following")
 
         if follower == following:
             raise ValidationError("You cannot subscribe on yourself.")
@@ -67,7 +67,7 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
         serializer.save(follower=follower)
 
     @action(detail=True, methods=["delete"])
-    def unscribe(self, request, pk=None):
+    def unsubscribe(self, request, pk=None):
 
         following = get_object_or_404(User, id=pk)
         subscription = Subscription.objects.filter(follower=request.user, following=following).first()

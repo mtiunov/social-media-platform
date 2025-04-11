@@ -1,5 +1,9 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
+from accounts.models import Profile
 from interactions.models import LikeUnlikeDislike, Subscription
+
+User = get_user_model()
 
 
 class LikeUnlikeDislikeSerializers(serializers.ModelSerializer):
@@ -18,15 +22,25 @@ class LikeUnlikeDislikeSerializers(serializers.ModelSerializer):
         return likeUnlikeDislike.post.content[:100]
 
 
+class ProfileSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ("id", "username", "email", "bio", "location")
+
+
 class SubscriptionSerializers(serializers.ModelSerializer):
+    follower_profile = ProfileSerializers(source="follower.profile", read_only=True)
+    following = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True)
+    following_profile = ProfileSerializers(source="following.profile", read_only=True)
+
     class Meta:
         model = Subscription
-        fields = ("id", "follower", "following", "created")
-        read_only_fields = ("follower", "following")
+        fields = ("id", "follower_profile", "following", "following_profile", "created")
+        read_only_fields = ("follower", "following_profile")
 
     def validate(self, data):
         follower = self.context["request"].user
-        following = self.data.get("following")
+        following = data.get("following")
 
         if not following:
             raise serializers.ValidationError({"following": "This field is required."})
@@ -43,5 +57,5 @@ class SubscriptionSerializers(serializers.ModelSerializer):
         if Subscription.objects.filter(follower=follower, following=following).exists():
             raise serializers.ValidationError("You are already following this user")
 
-        subscription = Subscription.objects.created(follower=following, following=following)
+        subscription = Subscription.objects.create(follower=follower, following=following)
         return subscription
