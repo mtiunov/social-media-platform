@@ -15,14 +15,18 @@ class LikeUnlikeDislikeViewSet(viewsets.ModelViewSet):
     serializer_class = LikeUnlikeDislikeSerializers
 
     def get_queryset(self):
-        return LikeUnlikeDislike.objects.filter(user=self.request.user.profile, value="like")
+        queryset = LikeUnlikeDislike.objects.filter(user=self.request.user.profile)
+        value = self.request.query_params.get("value")
+        if value in ["like", "unlike", "dislike"]:
+            queryset = queryset.filter(value=value)
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user.profile)
 
     def create(self, request, *args, **kwargs):
         user_profile = request.user.profile
-        post_id = request.data.get("post")
+        post_id = request.data.get("post_id")
         value = request.data.get("value")
 
         if not post_id or not value:
@@ -40,7 +44,13 @@ class LikeUnlikeDislikeViewSet(viewsets.ModelViewSet):
             user=user_profile, post=post, defaults={"value": value}
         )
 
-        message = f"Post {value.lower()}d successfully" if created else f"Post updated to {value.lower()}"
+        if not created:
+            like_obj.value = value
+            like_obj.save()
+            message = f"Post updated to {value.lower()}."
+        else:
+            message = f"Post {value.lower()}d successfully."
+
         return Response({"message": message}, status=status.HTTP_200_OK)
 
 

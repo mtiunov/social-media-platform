@@ -2,24 +2,40 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from accounts.models import Profile
 from interactions.models import LikeUnlikeDislike, Subscription
+from posts.models import Post
 
 User = get_user_model()
 
 
+class DetailPostSerializers(serializers.ModelSerializer):
+    content = serializers.SerializerMethodField(method_name="get_post_content")
+
+    class Meta:
+        model = Post
+        fields = ("id", "content")
+
+    def get_post_content(self, likeUnlikeDislike):
+        return likeUnlikeDislike.content[:100]
+
+
 class LikeUnlikeDislikeSerializers(serializers.ModelSerializer):
+    post = DetailPostSerializers(read_only=True)
+    post_id = serializers.PrimaryKeyRelatedField(queryset=Post.objects.all(), write_only=True)
     user = serializers.SerializerMethodField(method_name="get_user_username")
-    post = serializers.SerializerMethodField(method_name="get_post_content")
 
     class Meta:
         model = LikeUnlikeDislike
-        fields = ("id", "user", "post", "value")
-        read_only_fields = ("user",)
+        fields = ("id", "user", "post", "post_id", "value", "created", "update")
+        read_only_fields = ("user", "post", "created", "update")
 
     def get_user_username(self, likeUnlikeDislike):
         return likeUnlikeDislike.user.user.username
 
-    def get_post_content(self, likeUnlikeDislike):
-        return likeUnlikeDislike.post.content[:100]
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = self.context.get("request")
+        if request and request.method != "POST":
+            self.fields.pop("post_id", None)
 
 
 class ProfileSerializers(serializers.ModelSerializer):
