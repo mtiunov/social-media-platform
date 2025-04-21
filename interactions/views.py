@@ -3,9 +3,14 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from interactions.models import LikeUnlikeDislike, Subscription
-from interactions.serializers import LikeUnlikeDislikeSerializers, SubscriptionSerializers
+from interactions.serializers import (
+    LikeUnlikeDislikeSerializers,
+    SubscriptionSerializers,
+    SubscriptionUpdateSerializers
+)
 from posts.models import Post
 
 User = get_user_model()
@@ -13,6 +18,7 @@ User = get_user_model()
 
 class LikeUnlikeDislikeViewSet(viewsets.ModelViewSet):
     serializer_class = LikeUnlikeDislikeSerializers
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         queryset = LikeUnlikeDislike.objects.filter(user=self.request.user.profile)
@@ -57,6 +63,12 @@ class LikeUnlikeDislikeViewSet(viewsets.ModelViewSet):
 class SubscriptionViewSet(viewsets.ModelViewSet):
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializers
+    permission_classes = (IsAuthenticated,)
+
+    def get_serializer_class(self):
+        if self.request.method in ["PUT", "PATCH"]:
+            return SubscriptionUpdateSerializers
+        return SubscriptionSerializers
 
     def get_queryset(self):
         if self.action == "list":

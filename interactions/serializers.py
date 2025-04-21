@@ -52,7 +52,7 @@ class SubscriptionSerializers(serializers.ModelSerializer):
     class Meta:
         model = Subscription
         fields = ("id", "follower_profile", "following", "following_profile", "created")
-        read_only_fields = ("follower", "following_profile")
+        read_only_fields = ("id", "follower", "follower_profile", "following_profile", "created")
 
     def validate(self, data):
         follower = self.context["request"].user
@@ -75,3 +75,14 @@ class SubscriptionSerializers(serializers.ModelSerializer):
 
         subscription = Subscription.objects.create(follower=follower, following=following)
         return subscription
+
+
+class SubscriptionUpdateSerializers(serializers.ModelSerializer):
+    follower_profile = ProfileSerializers(source="follower.profile", read_only=True)
+    following_profile = ProfileSerializers(source="following.profile", read_only=True)
+    created = serializers.DateTimeField(read_only=True)
+
+    class Meta:
+        model = Subscription
+        fields = ("id", "follower_profile", "following_profile", "created")
+        read_only_fields = ("id", "follower_profile", "following_profile", "created")
