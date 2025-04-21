@@ -30,6 +30,8 @@ class ProfileSerializers(serializers.ModelSerializer):
             "created"
         )
 
+    read_only_fields = ("user", "slug", "update", "created")
+
     def get_full_name(self, obj):
         return f"{obj.first_name} {obj.last_name}"
 
