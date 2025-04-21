@@ -2,10 +2,9 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from accounts.models import Profile
-from comments.models import Comment
-from comments.serializers import CommentSerializers
 from interactions.models import Subscription
 from posts.models import Post, Hashtag
 from posts.serializers import HashtagSerializer, PostListSerializers, PostSerializers, PostRetrieveSerializer
@@ -25,6 +24,11 @@ class PostViewSet(viewsets.ModelViewSet):
         elif self.action == "retrieve":
             return PostRetrieveSerializer
         return PostSerializers
+
+    def get_permissions(self):
+        if self.action == "create":
+            return IsAuthenticated()
+        return AllowAny()
 
     def get_queryset(self):
         user_profile = Profile.objects.select_related("user").get(user=self.request.user)
@@ -106,26 +110,3 @@ class PostViewSet(viewsets.ModelViewSet):
 class HashtagViewSet(viewsets.ModelViewSet):
     queryset = Hashtag.objects.all()
     serializer_class = HashtagSerializer
-
-
-class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializers
-
-    def get_queryset(self):
-        post_id = self.kwargs.get("post_pk")
-        return Comment.objects.filter(post_id=post_id)
-
-    def perform_create(self, serializer):
-        post_id = self.kwargs.get("post_pk")
-        try:
-            post = Post.objects.get(pk=post_id)
-        except Post.DoesNotExist:
-            return Response({"detail": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
-        serializer.save(user=self.request.user, post=post)
-
-    def perform_update(self, serializer):
-        serializer.save(user=self.request.user)
-
-    def perform_destroy(self, instance):
-        instance.delete()
