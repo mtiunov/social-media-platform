@@ -19,11 +19,12 @@ User = get_user_model()
 class LikeUnlikeDislikeViewSet(viewsets.ModelViewSet):
     serializer_class = LikeUnlikeDislikeSerializers
     permission_classes = (IsAuthenticated,)
+    REACTION_VALUES = ("like", "unlike", "dislike")
 
     def get_queryset(self):
         queryset = LikeUnlikeDislike.objects.filter(user=self.request.user.profile)
         value = self.request.query_params.get("value")
-        if value in ["like", "unlike", "dislike"]:
+        if value in self.REACTION_VALUES:
             queryset = queryset.filter(value=value)
         return queryset
 
