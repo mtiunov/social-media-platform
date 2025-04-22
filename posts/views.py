@@ -18,6 +18,11 @@ class PostViewSet(viewsets.ModelViewSet):
     serializer_class = PostListSerializers
     filterset_class = PostFilter
 
+    def get_permissions(self):
+        if self.action in ["create", "update", "partial_update", "destroy"]:
+            return [IsAuthenticated()]
+        return [AllowAny()]
+
     def get_serializer_class(self):
         if self.action == "list":
             return PostListSerializers
@@ -25,23 +30,23 @@ class PostViewSet(viewsets.ModelViewSet):
             return PostRetrieveSerializer
         return PostSerializers
 
-    def get_permissions(self):
-        if self.action == "create":
-            return IsAuthenticated()
-        return AllowAny()
-
     def get_queryset(self):
-        user_profile = Profile.objects.select_related("user").get(user=self.request.user)
-        following_profiles = Subscription.objects.filter(follower=self.request.user
-                                                         ).values_list("following", flat=True)
-
-        if self.action in ("list", "retrieve"):
-            return Post.objects.filter(author__in=[user_profile] + list(following_profiles)
-                                       ).prefetch_related("hashtags")
+        if self.request.user.is_authenticated:
+            user_profile = Profile.objects.select_related("user").get(user=self.request.user)
+            following_profiles = Subscription.objects.filter(follower=self.request.user
+                                                             ).values_list("following", flat=True)
+            return Post.objects.filter(
+                author__in=[user_profile] + list(following_profiles)
+            ).prefetch_related("hashtags")
+        else:
+            return Post.objects.filter(
+                is_published=True,
+                publish_at__lte=timezone.now()
+            ).prefetch_related("hashtags")
 
     def perform_create(self, serializer):
         user_profile = Profile.objects.get(user=self.request.user)
-        post = serializer.save(author=user_profile)
+        post = serializer.save(author=user_profile, is_published=True)
         post.extract_hashtags()
 
     def perform_update(self, serializer):
