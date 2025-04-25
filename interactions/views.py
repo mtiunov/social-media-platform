@@ -22,10 +22,17 @@ class LikeUnlikeDislikeViewSet(viewsets.ModelViewSet):
     REACTION_VALUES = ("like", "unlike", "dislike")
 
     def get_queryset(self):
-        queryset = LikeUnlikeDislike.objects.filter(user=self.request.user.profile)
+        user = self.request.user
+
+        user_with_profile = User.objects.select_related("profile").get(id=user.id)
+        profile = user_with_profile.profile
+
+        queryset = LikeUnlikeDislike.objects.select_related("user__user", "post").filter(user=profile)
+
         value = self.request.query_params.get("value")
         if value in self.REACTION_VALUES:
             queryset = queryset.filter(value=value)
+
         return queryset
 
     def perform_create(self, serializer):
@@ -62,7 +69,6 @@ class LikeUnlikeDislikeViewSet(viewsets.ModelViewSet):
 
 
 class SubscriptionViewSet(viewsets.ModelViewSet):
-    queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializers
     permission_classes = (IsAuthenticated,)
 
@@ -72,9 +78,10 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
         return SubscriptionSerializers
 
     def get_queryset(self):
+        queryset = Subscription.objects.select_related("follower__profile", "following__profile")
         if self.action == "list":
-            return Subscription.objects.filter(follower=self.request.user)
-        return super().get_queryset()
+            return queryset.filter(follower=self.request.user)
+        return queryset
 
     def perform_create(self, serializer):
 
@@ -103,12 +110,14 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def following_list(self, request):
-        subscription = Subscription.objects.filter(follower=request.user)
+        subscription = Subscription.objects.filter(follower=request.user).\
+            select_related("following__profile", "following__profile__user")
         serializer = self.get_serializer(subscription, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=["get"])
     def followers_list(self, request):
-        subscription = Subscription.objects.filter(following=request.user)
+        subscription = Subscription.objects.filter(following=request.user).\
+            select_related("follower__profile", "follower__profile__user")
         serializer = self.get_serializer(subscription, many=True)
         return Response(serializer.data)

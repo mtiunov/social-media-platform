@@ -14,7 +14,6 @@ import json
 
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all()
     serializer_class = PostListSerializers
     filterset_class = PostFilter
 
@@ -31,15 +30,17 @@ class PostViewSet(viewsets.ModelViewSet):
         return PostSerializers
 
     def get_queryset(self):
+        queryset = Post.objects.select_related("author", "author__user").prefetch_related("hashtags")
+
         if self.request.user.is_authenticated:
             user_profile = Profile.objects.select_related("user").get(user=self.request.user)
             following_profiles = Subscription.objects.filter(follower=self.request.user
                                                              ).values_list("following", flat=True)
-            return Post.objects.filter(
+            return queryset.filter(
                 author__in=[user_profile] + list(following_profiles)
             ).prefetch_related("hashtags")
         else:
-            return Post.objects.filter(
+            return queryset.filter(
                 is_published=True,
                 publish_at__lte=timezone.now()
             ).prefetch_related("hashtags")

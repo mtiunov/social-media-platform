@@ -10,7 +10,7 @@ from accounts.serializers import ProfileSerializers
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
-    queryset = Profile.objects.all()
+    queryset = Profile.objects.select_related("user")
     serializer_class = ProfileSerializers
     filter_backends = [DjangoFilterBackend,
                        filters.SearchFilter,
@@ -21,9 +21,6 @@ class ProfileViewSet(viewsets.ModelViewSet):
     ordering_fields = ["username", "email", "location", "gender"]
     permission_classes = (IsAuthenticated,)
 
-    def get_queryset(self):
-        return Profile.objects.all()
-    
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
