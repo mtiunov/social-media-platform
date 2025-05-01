@@ -9,7 +9,7 @@ class LikeUnlikeDislike(models.Model):
     class LikeChoices(models.TextChoices):
         LIKE = "like", "Like"
         UNLIKE = "Unlike", "Unlike"
-        DISLIKE = "dislike", "Dislike"
+        DISLIKE = "Dislike", "Dislike"
 
     user = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="user_likes")
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="post_likes")
