@@ -20,13 +20,13 @@ class DetailPostSerializers(serializers.ModelSerializer):
 
 class LikeUnlikeDislikeSerializers(serializers.ModelSerializer):
     post = DetailPostSerializers(read_only=True)
-    post_id = serializers.PrimaryKeyRelatedField(queryset=Post.objects.all(), write_only=True)
+    post_id = serializers.PrimaryKeyRelatedField(queryset=Post.objects.all(), write_only=True, source="post")
     user = serializers.SerializerMethodField(method_name="get_user_username")
 
     class Meta:
         model = LikeUnlikeDislike
         fields = ("id", "user", "post", "post_id", "value", "created", "update")
-        read_only_fields = ("user", "post", "created", "update")
+        read_only_fields = ("id", "user", "post", "created", "update")
 
     def get_user_username(self, likeUnlikeDislike):
         return likeUnlikeDislike.user.user.username
@@ -55,37 +55,18 @@ class SubscriptionSerializers(serializers.ModelSerializer):
     class Meta:
         model = Subscription
         fields = ("id", "follower_profile", "following", "following_profile", "created")
-        read_only_fields = ("id", "follower", "follower_profile", "following_profile", "created")
+        read_only_fields = ("id", "follower_profile", "following_profile", "created")
 
     def validate(self, data):
-        follower = self.context["request"].user
+        request = self.context.get("request")
+
+        if not request:
+            raise serializers.ValidationError({"Request context is not available."})
+
+        follower = request.user
         following = data.get("following")
-
-        if not following:
-            raise serializers.ValidationError({"following": "This field is required."})
-
         if follower == following:
-            raise serializers.ValidationError("You cannot subscribe to yourself")
-
-        return data
-
-    def create(self, validated_data):
-        follower = self.context["request"].user
-        following = validated_data["following"]
-
+            raise serializers.ValidationError({"following": ["You cannot subscribe to yourself."]})
         if Subscription.objects.filter(follower=follower, following=following).exists():
-            raise serializers.ValidationError("You are already following this user")
-
-        subscription = Subscription.objects.create(follower=follower, following=following)
-        return subscription
-
-
-class SubscriptionUpdateSerializers(serializers.ModelSerializer):
-    follower_profile = ProfileSerializers(source="follower.profile", read_only=True)
-    following_profile = ProfileSerializers(source="following.profile", read_only=True)
-    created = serializers.DateTimeField(read_only=True)
-
-    class Meta:
-        model = Subscription
-        fields = ("id", "follower_profile", "following_profile", "created")
-        read_only_fields = ("id", "follower_profile", "following_profile", "created")
+            raise serializers.ValidationError({"following": ["You are already following this user."]})
+        return data

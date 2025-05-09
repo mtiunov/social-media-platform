@@ -21,18 +21,29 @@ class Post(models.Model):
     class Meta:
         ordering = ("-created",)
 
-    def extract_hashtags(self):
-        hashtags = re.findall(r"#(\w+)", str(self.content))
-        tag_objects = [Hashtag.objects.get_or_create(name=tag)[0] for tag in hashtags]
+    def extract_hashtags(self, post_author):
+        if not self.content:
+            self.hashtags.set([])
+            return
+        content_str = str(self.content) if self.content is not None else ""
+        hashtags_names = re.findall(r"#(\w+)", content_str)
+        tag_objects = []
+        for tag_name in hashtags_names:
+            hashtag_obj, created = Hashtag.objects.get_or_create(
+                name=tag_name.lower(), defaults={"author": post_author}
+            )
+            tag_objects.append(hashtag_obj)
         self.hashtags.set(tag_objects)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        self.extract_hashtags()
+        if self.author:
+            self.extract_hashtags(post_author=self.author)
 
 
 class Hashtag(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    author = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True, blank=True, related_name="hashtags")
 
     def __str__(self) -> str:
         return f"#{self.name}"

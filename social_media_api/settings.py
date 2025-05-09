@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "debug_toolbar",
+    "drf_spectacular",
     "django_filters",
     "user",
     "accounts",
@@ -140,7 +141,8 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend"
-    ]
+    ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 # Celery Configuration Options
@@ -160,3 +162,16 @@ CELERY_BEAT_SCHEDULE = {
 INTERNAL_IPS = [
     "127.0.0.1",
     ]
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Social Media API",
+    "DESCRIPTION": "Creating a RESTful API for a Social Media Platform",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+        "defaultModelRendering": "model",
+        "defaultModelsExpandDepth": 2,
+        "defaultModelExpandDepth": 2,
+    },
+}

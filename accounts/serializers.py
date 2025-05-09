@@ -8,6 +8,7 @@ class ProfileSerializers(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source="user.id")
     full_name = serializers.SerializerMethodField()
     age = serializers.SerializerMethodField()
+    picture = serializers.ImageField(required=False)
 
     class Meta:
         model = Profile

@@ -55,4 +55,4 @@ class PostListSerializers(PostSerializers):
 
 
 class PostRetrieveSerializer(PostSerializers):
-    hashtags = HashtagSerializer(many=True)
+    hashtags = HashtagSerializer(many=True, read_only=True)

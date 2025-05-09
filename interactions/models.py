@@ -1,19 +1,17 @@
 from django.conf import settings
 from django.db import models
-from rest_framework.exceptions import ValidationError
 from accounts.models import Profile
 from posts.models import Post
 
 
 class LikeUnlikeDislike(models.Model):
-    class LikeChoices(models.TextChoices):
+    class ReactionChoices(models.TextChoices):
         LIKE = "like", "Like"
-        UNLIKE = "Unlike", "Unlike"
-        DISLIKE = "Dislike", "Dislike"
+        DISLIKE = "dislike", "Dislike"
 
     user = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="user_likes")
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="post_likes")
-    value = models.CharField(max_length=8, choices=LikeChoices)
+    value = models.CharField(max_length=8, choices=ReactionChoices)
     update = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
 
@@ -23,11 +21,7 @@ class LikeUnlikeDislike(models.Model):
         ]
 
     def __str__(self) -> str:
-        return f"{self.user}-{self.post}-{self.value}"
-
-    def clean(self):
-        if self.value not in [choice[0] for choice in self.LikeChoices.choices]:
-            raise ValidationError("Invalid value for like/unlike/dislike")
+        return f"{self.user} reacted {self.value} on Post {self.post.id}"
 
 
 class Subscription(models.Model):
