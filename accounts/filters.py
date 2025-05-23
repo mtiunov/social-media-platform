@@ -9,6 +9,6 @@ class ProfileFilter(django_filters.FilterSet):
             "username": ["iexact", "icontains"],
             "bio": ["iexact", "icontains"],
             "gender": ["iexact"],
-            "location": ["iexact"],
+            "location": ["icontains"],
             "birthdate": ["exact", "lt", "gt"],
         }

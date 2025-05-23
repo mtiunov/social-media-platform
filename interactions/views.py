@@ -138,8 +138,6 @@ class LikeUnlikeDislikeViewSet(
     permission_classes = (IsAuthenticated,)
     REACTION_VALUES = [choice[0] for choice in LikeUnlikeDislike.ReactionChoices.choices]
 
-    http_method_names = ["get", "post", "put", "delete", "head", "options"]
-
     def get_queryset(self):
         user_profile = self.request.user.profile
 

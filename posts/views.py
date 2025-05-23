@@ -299,11 +299,11 @@ class PostViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         user_profile = Profile.objects.get(user=self.request.user)
         post = serializer.save(author=user_profile, is_published=True)
-        post.extract_hashtags()
+        post.extract_hashtags(post_author=user_profile)
 
     def perform_update(self, serializer):
         post = serializer.save()
-        post.extract_hashtags()
+        post.extract_hashtags(post_author=post.author)
 
     @action(detail=False, methods=["get"])
     def by_hashtag(self, request) -> Response:
