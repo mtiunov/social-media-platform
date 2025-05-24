@@ -161,7 +161,7 @@ CELERY_BEAT_SCHEDULE = {
 
 INTERNAL_IPS = [
     "127.0.0.1",
-    ]
+]
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Social Media API",

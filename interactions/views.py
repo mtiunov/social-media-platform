@@ -239,7 +239,7 @@ class LikeUnlikeDislikeViewSet(
                 "description": "Subscription not found or not owned by user.",
                 "type": "object", "properties": {"detail": {"type": "string"}}
             },
-         },
+        },
         tags=["Subscriptions"],
     ),
     following_list=extend_schema(

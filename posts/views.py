@@ -240,7 +240,11 @@ import json
         },
         methods=["post"],
         responses={
-            201: { "description": "Post scheduled successfully.", "type": "object", "properties": {"message": {"type": "string"}} },
+            201: {
+                "description": "Post scheduled successfully.",
+                "type": "object",
+                "properties": {"message": {"type": "string"}}
+            },
             400: {
                 "description": "Invalid input.",
                 "type": "object",

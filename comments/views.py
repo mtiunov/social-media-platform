@@ -56,7 +56,7 @@ from comments.serializers import CommentSerializers
                 value={
                     "post_id": 2,
                     "text": "Comment updated",
-                   },
+                },
                 request_only=True,
             )
         ],
